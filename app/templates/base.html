@@ -16,9 +16,62 @@
   <!-- App CSS -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
 
+  <style>
+    /* Language Switcher UI Support */
+    .language-switcher { position: relative; display: inline-block; }
+    .language-toggle { 
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text-main); padding: 0.5rem 1rem; border-radius: 8px;
+      display: flex; align-items: center; gap: 8px; cursor: pointer; transition: 0.2s;
+    }
+    .language-toggle:hover { background: rgba(255,255,255,0.1); }
+    .language-menu {
+      position: absolute; top: calc(100% + 8px); right: 0; 
+      background: #1a1d21; border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px; min-width: 160px; overflow: hidden;
+      display: none; z-index: 1000; box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    }
+    .language-switcher.active .language-menu { display: block; animation: smFadeIn 0.2s ease; }
+    .language-option {
+      width: 100%; padding: 10px 16px; border: none; background: none;
+      color: var(--text-main); text-align: left; cursor: pointer;
+      display: flex; align-items: center; gap: 10px; transition: 0.2s;
+    }
+    .language-option:hover { background: var(--accent); color: white; }
+    .language-flag { font-size: 1.2rem; }
+    
+    @keyframes smFadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Floating version for login/admin pages */
+    .floating-language-switcher { position: fixed; top: 1.5rem; right: 1.5rem; z-index: 1050; }
+  </style>
+
   {% block extra_head %}{% endblock %}
 </head>
 <body>
+
+{% macro language_switcher(extra_class='') -%}
+<div class="language-switcher {{ extra_class }}" data-language-switcher>
+  <button class="language-toggle" type="button" data-lang-toggle aria-haspopup="true" aria-expanded="false">
+    <span class="language-flag" data-current-lang-flag>🇬🇧</span>
+    <span class="language-name" data-current-lang-label>English</span>
+    <i class="bi bi-chevron-down"></i>
+  </button>
+  <div class="language-menu" role="menu">
+    <button type="button" class="language-option" data-lang-option="en" role="menuitem">
+      <span class="language-flag">🇬🇧</span>
+      <span data-i18n="lang-en">English</span>
+    </button>
+    <button type="button" class="language-option" data-lang-option="sw" role="menuitem">
+      <span class="language-flag">🇹🇿</span>
+      <span data-i18n="lang-sw">Kiswahili</span>
+    </button>
+  </div>
+</div>
+{%- endmacro %}
 
 {% if current_user.is_authenticated %}
 <!-- ── Authenticated layout ──────────────────────────────────────────────── -->
@@ -36,6 +89,9 @@
     <div class="collapse navbar-collapse" id="navCollapse">
       <ul class="navbar-nav ms-auto align-items-lg-center gap-1">
         <li class="nav-item">
+          {{ language_switcher() }}
+        </li>
+        <li class="nav-item">
           <span class="nav-link text-muted" style="font-size:.78rem">
             <i class="bi bi-person-circle me-1"></i>{{ current_user.full_name }}
           </span>
@@ -49,7 +105,7 @@
         </li>
         <li class="nav-item">
           <a class="nav-link" href="{{ url_for('auth.logout') }}">
-            <i class="bi bi-box-arrow-right me-1"></i>Logout
+            <i class="bi bi-box-arrow-right me-1"></i><span data-i18n="nav-logout">Logout</span>
           </a>
         </li>
       </ul>
@@ -61,31 +117,31 @@
   <!-- Sidebar -->
   <aside class="sm-sidebar">
     <div class="sidebar-card">
-      <div class="sidebar-card-kicker">Protected Wallet</div>
+      <div class="sidebar-card-kicker" data-i18n="sidebar-protected-wallet">Protected Wallet</div>
       <div class="sidebar-card-title">AES-256-GCM</div>
-      <div class="sidebar-card-copy">Transaction values remain encrypted at rest.</div>
+      <div class="sidebar-card-copy" data-i18n="sidebar-crypto-info">Transaction values remain encrypted at rest.</div>
     </div>
 
-    <div class="sidebar-label">Menu</div>
+    <div class="sidebar-label" data-i18n="sidebar-menu">Menu</div>
 
     <a href="{{ url_for('main.dashboard') }}"
        class="sidebar-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}">
-      <span class="si"><i class="bi bi-grid-1x2-fill"></i></span> Dashboard
+      <span class="si"><i class="bi bi-grid-1x2-fill"></i></span> <span data-i18n="nav-dashboard">Dashboard</span>
     </a>
     <a href="{{ url_for('transfers.send') }}"
        class="sidebar-link {% if request.endpoint == 'transfers.send' %}active{% endif %}">
-      <span class="si"><i class="bi bi-send-fill"></i></span> Send Money
+      <span class="si"><i class="bi bi-send-fill"></i></span> <span data-i18n="nav-send">Send Money</span>
     </a>
     <a href="{{ url_for('payments.pay') }}"
        class="sidebar-link {% if request.endpoint == 'payments.pay' %}active{% endif %}">
-      <span class="si"><i class="bi bi-receipt"></i></span> Pay Bills
+      <span class="si"><i class="bi bi-receipt"></i></span> <span data-i18n="nav-pay">Pay Bills</span>
     </a>
     <a href="{{ url_for('transfers.history') }}"
        class="sidebar-link {% if request.endpoint == 'transfers.history' %}active{% endif %}">
-      <span class="si"><i class="bi bi-clock-history"></i></span> History
+      <span class="si"><i class="bi bi-clock-history"></i></span> <span data-i18n="nav-history">History</span>
     </a>
 
-    <div class="sidebar-label" style="margin-top:2rem">Security</div>
+    <div class="sidebar-label" style="margin-top:2rem" data-i18n="sidebar-security">Security</div>
     <div class="sidebar-link" style="cursor:default">
       <span class="si" style="color:var(--accent)"><i class="bi bi-shield-lock-fill"></i></span>
       <span style="font-size:.78rem;color:var(--text-muted)">AES-256-GCM Active</span>
@@ -119,10 +175,11 @@
     </button>
     <div class="collapse navbar-collapse" id="publicNav">
       <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
-        <li class="nav-item"><a class="nav-link" href="{{ url_for('main.index') }}#platform">Platform</a></li>
-        <li class="nav-item"><a class="nav-link" href="{{ url_for('main.index') }}#security">Security</a></li>
-        <li class="nav-item"><a class="btn-ghost btn-sm" href="{{ url_for('auth.login') }}">Sign in</a></li>
-        <li class="nav-item"><a class="btn-accent btn-sm" href="{{ url_for('auth.register') }}">Open account</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('main.index') }}#platform" data-i18n="platform">Platform</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('main.index') }}#security" data-i18n="security">Security</a></li>
+        <li class="nav-item">{{ language_switcher() }}</li>
+        <li class="nav-item"><a class="btn-ghost btn-sm" href="{{ url_for('auth.login') }}" data-i18n="btn-signin">Sign in</a></li>
+        <li class="nav-item"><a class="btn-accent btn-sm" href="{{ url_for('auth.register') }}" data-i18n="btn-open-account">Open account</a></li>
       </ul>
     </div>
   </div>
@@ -142,6 +199,9 @@
 {% endwith %}
 
 {% endif %}
+{% if request.blueprint == 'admin' and not current_user.is_authenticated %}
+  {{ language_switcher('floating-language-switcher') }}
+{% endif %}
 
 {% block content %}{% endblock %}
 
@@ -152,6 +212,8 @@
 
 <!-- Bootstrap JS (Bundle) -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Translations Data -->
+<script src="{{ url_for('static', filename='js/translations.js') }}"></script>
 <!-- App JS -->
 <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 {% block extra_js %}{% endblock %}

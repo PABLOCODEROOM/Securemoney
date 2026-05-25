@@ -8,9 +8,7 @@ from flask import (
     request, flash, session,
 )
 from flask_login import login_user, logout_user, login_required, current_user
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
-
+from app.config import get_config
 from app.models import (
     create_user, authenticate_user, UserExistsError, AuthenticationError,
     create_otp, verify_otp_token, log_action, get_user_by_id,
@@ -19,17 +17,23 @@ from app import UserSession, limiter
 
 auth_bp = Blueprint("auth", __name__)
 
+def _get_ip() -> str:
+    """Extract the most accurate client IP address, handling reverse proxies."""
+    # X-Forwarded-For can be a list; take the first one. Fallback to X-Real-IP or remote_addr.
+    forwarded = request.headers.get('X-Forwarded-For')
+    if forwarded:
+        return forwarded.split(',')[0].strip()
+    return request.headers.get('X-Real-IP', request.remote_addr)
 
 def _send_otp(user_id: int, email: str) -> str:
-    """Create OTP, store in session for display, and simulate sending."""
-    from app.config import get_config
-    from flask import session
+    """Create OTP, store in session for display (dev only), and simulate sending."""
     otp = create_otp(user_id)
     cfg = get_config()
     
     # Store OTP in session for display on verify page (development only)
-    session["dev_otp"] = otp
-    print(f"[DEBUG] OTP stored in session: {otp}")  # Debug line
+    if cfg.FLASK_ENV != 'production':
+        session["dev_otp"] = otp
+        print(f"[DEBUG] OTP stored in session: {otp}")  # Debug line
     
     if cfg.EMAIL_SIMULATE:
         # Print with clear formatting for visibility
@@ -74,14 +78,15 @@ def register():
             for e in errors:
                 flash(e, "danger")
             return render_template("auth/register.html",
-                                   full_name=full_name, email=email, phone=phone)
+                                   full_name=full_name, email=email, phone=phone,
+                                   errors=errors) # Pass errors to template for better display
 
         try:
             user_id = create_user(full_name, email, phone, password)
-            log_action(user_id, f"REGISTER: new account created for {email}", request.remote_addr)
+            log_action(user_id, f"REGISTER: new account created for {email}", _get_ip())
             flash("Account created! Please log in.", "success")
             return redirect(url_for("auth.login"))
-        except UserExistsError:
+        except UserExistsError: # This should ideally be caught before create_user or handled by unique constraint
             flash("An account with that email already exists.", "danger")
         except Exception as exc:
             flash("Registration failed. Please try again.", "danger")
@@ -110,12 +115,12 @@ def login():
             session["pending_email"]     = user["email"]
 
             _send_otp(user["user_id"], user["email"])
-            log_action(user["user_id"], f"LOGIN_ATTEMPT: OTP sent to {email}", request.remote_addr)
+            log_action(user["user_id"], f"LOGIN_ATTEMPT: OTP sent to {email}", _get_ip())
             return redirect(url_for("auth.verify_otp"))
 
         except AuthenticationError as exc:
             flash(str(exc), "danger")
-            log_action(None, f"LOGIN_FAIL: invalid credentials for {email}", request.remote_addr)
+            log_action(None, f"LOGIN_FAIL: invalid credentials for {email}", _get_ip())
 
     return render_template("auth/login.html")
 
@@ -129,9 +134,11 @@ def verify_otp():
         return redirect(url_for("auth.login"))
 
     # Debug: Print session values on GET request
+    cfg = get_config()
     if request.method == "GET":
-        dev_otp = session.get("dev_otp", "NOT SET")
-        print(f"[DEBUG] verify_otp GET - dev_otp in session: {dev_otp}")
+        if cfg.FLASK_ENV != 'production':
+            dev_otp = session.get("dev_otp", "NOT SET")
+            print(f"[DEBUG] verify_otp GET - dev_otp in session: {dev_otp}")
 
     if request.method == "POST":
         otp_input = request.form.get("otp", "").strip()
@@ -145,11 +152,11 @@ def verify_otp():
             session.pop("pending_user_id",   None)
             session.pop("pending_user_name", None)
             session.pop("pending_email",     None)
-            log_action(user_id, "LOGIN_SUCCESS: 2FA passed", request.remote_addr)
+            log_action(user_id, "LOGIN_SUCCESS: 2FA passed", _get_ip())
             flash(f"Welcome back, {user_obj.full_name}!", "success")
             return redirect(url_for("main.dashboard"))
         else:
-            log_action(user_id, "LOGIN_FAIL: invalid OTP", request.remote_addr)
+            log_action(user_id, "LOGIN_FAIL: invalid OTP", _get_ip())
             flash("Invalid or expired OTP. Please try again.", "danger")
 
     return render_template("auth/verify_otp.html",
@@ -161,7 +168,7 @@ def verify_otp():
 @auth_bp.route("/logout")
 @login_required
 def logout():
-    log_action(current_user.user_id, "LOGOUT", request.remote_addr)
+    log_action(current_user.user_id, "LOGOUT", _get_ip())
     logout_user()
     session.clear()
     flash("You have been logged out.", "info")

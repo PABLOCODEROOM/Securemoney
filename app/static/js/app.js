@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
     transferForm.addEventListener('submit', (e) => {
       const amount  = document.getElementById('amount')?.value;
       const to      = document.getElementById('to_account')?.value;
-      if (!confirm(`Send TZS ${parseFloat(amount).toLocaleString()} to account ${to}?\n\nThis action cannot be undone.`)) {
+      if (!confirm(i18n('confirm-transfer', {amount: parseFloat(amount).toLocaleString(), to: to}))) {
         e.preventDefault();
       }
     });
@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const amount  = document.getElementById('amount')?.value;
       const biller  = document.getElementById('biller');
       const billerName = biller?.options[biller.selectedIndex]?.text || '';
-      if (!confirm(`Pay TZS ${parseFloat(amount).toLocaleString()} to ${billerName}?\n\nThis action cannot be undone.`)) {
+      if (!confirm(i18n('confirm-bill', {amount: parseFloat(amount).toLocaleString(), biller: billerName}))) {
         e.preventDefault();
       }
     });
@@ -108,4 +108,54 @@ document.addEventListener('DOMContentLoaded', () => {
     row.style.cursor = 'pointer';
     row.addEventListener('click', () => window.location = row.dataset.href);
   });
+
+  /* ── Language Switcher Logic ───────────────────────────────────────────── */
+  const setLanguage = (lang) => {
+    localStorage.setItem('preferredLanguage', lang);
+    
+    // Update UI labels and flags
+    const flagMap = { 'en': '🇬🇧', 'sw': '🇹🇿' };
+    const labelMap = { 'en': 'English', 'sw': 'Kiswahili' };
+    
+    document.querySelectorAll('[data-current-lang-flag]').forEach(el => el.innerText = flagMap[lang]);
+    document.querySelectorAll('[data-current-lang-label]').forEach(el => el.innerText = labelMap[lang]);
+    
+    // Perform instant translation with a subtle transition
+    if (typeof updatePageLanguage === 'function') {
+      document.body.classList.add('switching-language');
+      document.body.style.transition = 'opacity 0.15s ease';
+      document.body.style.opacity = '0.5';
+      setTimeout(() => {
+        updatePageLanguage();
+        document.body.style.opacity = '1';
+      }, 150);
+    }
+  };
+
+  // Handle button clicks in switcher (event delegation = works on all pages)
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-lang-option]');
+    if (!btn) return;
+    const lang = btn.getAttribute('data-lang-option');
+    setLanguage(lang);
+  });
+
+  // Initialize Language
+  let currentLang = localStorage.getItem('preferredLanguage');
+  if (!currentLang) {
+    // Auto-detect browser language
+    const browserLang = navigator.language || navigator.userLanguage;
+    currentLang = browserLang.startsWith('sw') ? 'sw' : 'en';
+    localStorage.setItem('preferredLanguage', currentLang);
+  }
+  setLanguage(currentLang);
+
+  // Dropdown UI toggle
+  document.querySelectorAll('[data-lang-toggle]').forEach(toggle => {
+    toggle.addEventListener('click', (e) => {
+      toggle.parentElement.classList.toggle('active');
+      e.stopPropagation();
+    });
+  });
+  document.addEventListener('click', () => document.querySelectorAll('.language-switcher').forEach(s => s.classList.remove('active')));
 });
