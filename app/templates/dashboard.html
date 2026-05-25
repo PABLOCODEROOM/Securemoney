@@ -4,8 +4,8 @@
 {% block content %}
 <div class="page-header fade-up">
   <div>
-    <div class="page-title">Dashboard</div>
-    <div class="page-sub">Welcome back, {{ user.full_name.split()[0] }}</div>
+    <div class="page-title" data-i18n="title-dashboard">Dashboard</div>
+    <div class="page-sub" data-i18n="welcome-back" data-i18n-params='{"name":"{{ user.full_name.split()[0] }}"}'>Welcome back, {{ user.full_name.split()[0] }}</div>
   </div>
   <div class="lock-badge">
     <i class="bi bi-shield-lock-fill"></i> AES-256-GCM
@@ -23,7 +23,7 @@
   </div>
   <div class="balance-actions">
     <a href="{{ url_for('transfers.send') }}" class="btn-accent">
-      <i class="bi bi-send-fill"></i> Send Money
+      <i class="bi bi-send-fill"></i> <span data-i18n="btn-send-money">Send Money</span>
     </a>
     <a href="{{ url_for('payments.pay') }}" class="btn-ghost">
       <i class="bi bi-receipt"></i> Pay Bill
@@ -31,7 +31,7 @@
   </div>
 </div>
 <div class="analytics-card fade-up d2">
-  <div class="sm-card-title">Payment Flow</div>
+  <div class="sm-card-title" data-i18n="payment-flow">Payment Flow</div>
   <div class="chart-bars" aria-hidden="true">
     <span style="height:48%"></span>
     <span style="height:68%"></span>
@@ -73,7 +73,7 @@
 <!-- Recent Transactions -->
 <div class="sm-card fade-up d4">
   <div class="sm-card-header">
-    <span class="sm-card-title"><i class="bi bi-clock-history me-1"></i> Recent Transactions</span>
+    <span class="sm-card-title"><i class="bi bi-clock-history me-1"></i> <span data-i18n="recent-transactions">Recent Transactions</span></span>
     <a href="{{ url_for('transfers.history') }}" style="font-size:.8rem;color:var(--accent)">View all →</a>
   </div>
 
@@ -105,9 +105,9 @@
   {% else %}
     <div class="empty-state">
       <div class="empty-icon"><i class="bi bi-inbox"></i></div>
-      <div style="font-size:.9rem">No transactions yet</div>
+      <div style="font-size:.9rem" data-i18n="no-transactions">No transactions yet</div>
       <div style="font-size:.8rem;margin-top:.5rem">
-        <a href="{{ url_for('transfers.send') }}">Send your first payment →</a>
+        <a href="{{ url_for('transfers.send') }}" data-i18n="send-first-payment">Send your first payment →</a>
       </div>
     </div>
   {% endif %}
