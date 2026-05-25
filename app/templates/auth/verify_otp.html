@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}Verify OTP{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+  <div class="auth-visual">
+    <div class="brand-name">Two-Factor<br><span>Auth</span></div>
+    <p class="tagline">A one-time passcode has been sent to your registered email. This extra step ensures only you can access your account.</p>
+    <div style="margin-top:2.5rem">
+      <div class="auth-feature">
+        <div class="feat-icon"><i class="bi bi-clock-fill"></i></div>
+        Code expires in 5 minutes
+      </div>
+      <div class="auth-feature">
+        <div class="feat-icon"><i class="bi bi-shield-check-fill"></i></div>
+        OTP hash stored — never plaintext
+      </div>
+      <div class="auth-feature">
+        <div class="feat-icon"><i class="bi bi-arrow-repeat"></i></div>
+        One-time use — replays are rejected
+      </div>
+    </div>
+  </div>
+
+  <div class="auth-panel" style="text-align:center">
+    <div style="font-size:2.5rem;margin-bottom:1rem">🔐</div>
+    <div class="auth-title">Check your email</div>
+    <div class="auth-sub" style="margin-bottom:0">
+      We sent a {{ "6" }}-digit code to<br>
+      <strong style="color:var(--text-primary)">{{ email }}</strong>
+    </div>
+
+    <form method="POST" action="{{ url_for('auth.verify_otp') }}" id="otp-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="otp" id="otp-hidden">
+
+      <div class="otp-inputs">
+        {% for i in range(6) %}
+          <input type="text" class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]"
+                 aria-label="OTP digit {{ i+1 }}" {% if i == 0 %}autofocus{% endif %}>
+        {% endfor %}
+      </div>
+
+      <button type="submit" class="btn-accent w-100" style="justify-content:center" id="otp-submit-btn" disabled>
+        <i class="bi bi-check2-circle"></i> Verify Code
+      </button>
+    </form>
+
+    <div class="divider"></div>
+    <div style="font-size:.85rem;color:var(--text-muted)">
+      Didn't receive the code?
+      <a href="{{ url_for('auth.login') }}" style="font-weight:600">Try again</a>
+    </div>
+
+    <!-- DEV NOTICE -->
+    <div style="margin-top:1.5rem;padding:1rem;background:rgba(255,183,3,.07);border:1px solid rgba(255,183,3,.3);border-radius:var(--radius-sm);">
+      <div style="font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--warning);margin-bottom:.5rem;">
+        <i class="bi bi-cone-striped"></i> Development Mode
+      </div>
+      <div style="font-size:.8rem;color:var(--text-muted);margin-bottom:.5rem;">
+        In production, OTP is sent via email/SMS. In development, use the code below:
+      </div>
+      <div style="font-size:1.5rem;font-weight:700;letter-spacing:0.3em;color:var(--warning);text-align:center;padding:0.5rem;background:rgba(0,0,0,0.2);border-radius:var(--radius-sm);">
+        {{ session.get('dev_otp', 'N/A') }}
+      </div>
+      <div style="font-size:.7rem;color:var(--text-muted);margin-top:.5rem;text-align:center;">
+        <i class="bi bi-info-circle"></i> This code is also printed to the Flask console
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+/* OTP input handling — works with app.js for sync, handles form submission */
+(function() {
+  const boxes = document.querySelectorAll('.otp-box');
+  const hiddenInput = document.getElementById('otp-hidden');
+  const submitBtn = document.getElementById('otp-submit-btn');
+  const form = document.getElementById('otp-form');
+
+  if (!boxes.length || !hiddenInput) return;
+
+  function getOTPValue() {
+    return Array.from(boxes).map(b => b.value).join('');
+  }
+
+  function updateForm() {
+    const otp = getOTPValue();
+    hiddenInput.value = otp;
+    // Enable submit button when all 6 digits are entered
+    if (otp.length === 6 && /^\d{6}$/.test(otp)) {
+      submitBtn.disabled = false;
+    } else {
+      submitBtn.disabled = true;
+    }
+  }
+
+  boxes.forEach((box, i) => {
+    // Handle input — only allow digits
+    box.addEventListener('input', (e) => {
+      const val = e.target.value.replace(/\D/g, '');
+      box.value = val.slice(-1);
+      if (val && i < boxes.length - 1) {
+        boxes[i + 1].focus();
+      }
+      updateForm();
+    });
+
+    // Handle backspace
+    box.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' && !box.value && i > 0) {
+        boxes[i - 1].focus();
+        boxes[i - 1].value = '';
+        updateForm();
+      }
+    });
+
+    // Handle paste
+    box.addEventListener('paste', (e) => {
+      e.preventDefault();
+      const text = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '');
+      boxes.forEach((b, j) => { b.value = text[j] || ''; });
+      updateForm();
+      boxes[Math.min(text.length, boxes.length) - 1].focus();
+    });
+  });
+
+  // Auto-submit when all digits are entered (after a short delay to ensure sync)
+  const observer = new MutationObserver(() => {
+    const otp = getOTPValue();
+    if (otp.length === 6 && /^\d{6}$/.test(otp) && !submitBtn.disabled) {
+      setTimeout(() => form.submit(), 300);
+    }
+  });
+  observer.observe(hiddenInput, { attributes: true, attributeFilter: ['value'] });
+})();
+</script>
+{% endblock %}

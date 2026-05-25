@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header fade-up">
+  <div>
+    <div class="page-title">Dashboard</div>
+    <div class="page-sub">Welcome back, {{ user.full_name.split()[0] }}</div>
+  </div>
+  <div class="lock-badge">
+    <i class="bi bi-shield-lock-fill"></i> AES-256-GCM
+  </div>
+</div>
+
+<div class="dashboard-grid">
+<div class="balance-card fade-up d1">
+  <div class="acct-label"><i class="bi bi-wallet2"></i> Available Balance</div>
+  <div class="display-amount">
+    TZS {{ "{:,.2f}".format(account.balance) if account else "0.00" }}
+  </div>
+  <div class="acct-number">
+    {{ account.account_number if account else "—" }}
+  </div>
+  <div class="balance-actions">
+    <a href="{{ url_for('transfers.send') }}" class="btn-accent">
+      <i class="bi bi-send-fill"></i> Send Money
+    </a>
+    <a href="{{ url_for('payments.pay') }}" class="btn-ghost">
+      <i class="bi bi-receipt"></i> Pay Bill
+    </a>
+  </div>
+</div>
+<div class="analytics-card fade-up d2">
+  <div class="sm-card-title">Payment Flow</div>
+  <div class="chart-bars" aria-hidden="true">
+    <span style="height:48%"></span>
+    <span style="height:68%"></span>
+    <span style="height:42%"></span>
+    <span style="height:86%"></span>
+    <span style="height:74%"></span>
+    <span style="height:56%"></span>
+    <span style="height:92%"></span>
+  </div>
+  <div class="analytics-foot">
+    <span>7-day volume</span>
+    <strong>+18.4%</strong>
+  </div>
+</div>
+</div>
+
+<!-- Stats -->
+<div class="stat-grid">
+  {% set debit_total  = recent_txns | selectattr('is_debit') | sum(attribute='amount') %}
+  {% set credit_total = recent_txns | rejectattr('is_debit') | sum(attribute='amount') %}
+
+  <div class="stat-tile fade-up d2">
+    <div class="stat-label">Sent (recent)</div>
+    <div class="stat-value" style="color:var(--danger)">{{ "{:,.0f}".format(debit_total) }}</div>
+    <div style="font-size:.72rem;color:var(--text-muted);margin-top:.25rem">TZS</div>
+  </div>
+  <div class="stat-tile fade-up d3">
+    <div class="stat-label">Received (recent)</div>
+    <div class="stat-value" style="color:var(--accent)">{{ "{:,.0f}".format(credit_total) }}</div>
+    <div style="font-size:.72rem;color:var(--text-muted);margin-top:.25rem">TZS</div>
+  </div>
+  <div class="stat-tile fade-up d4">
+    <div class="stat-label">Transactions</div>
+    <div class="stat-value">{{ recent_txns | length }}</div>
+    <div style="font-size:.72rem;color:var(--text-muted);margin-top:.25rem">Last 5</div>
+  </div>
+</div>
+
+<!-- Recent Transactions -->
+<div class="sm-card fade-up d4">
+  <div class="sm-card-header">
+    <span class="sm-card-title"><i class="bi bi-clock-history me-1"></i> Recent Transactions</span>
+    <a href="{{ url_for('transfers.history') }}" style="font-size:.8rem;color:var(--accent)">View all →</a>
+  </div>
+
+  {% if recent_txns %}
+    <ul class="txn-list">
+      {% for txn in recent_txns %}
+        {% set cls = 'debit' if txn.is_debit else 'credit' %}
+        {% set icon = 'bi-send-fill' if txn.is_debit else ('bi-receipt' if txn.type == 'BILL_PAYMENT' else 'bi-arrow-down-circle-fill') %}
+        {% set icon_cls = 'debit' if txn.is_debit else ('bill' if txn.type == 'BILL_PAYMENT' else 'credit') %}
+        <li class="txn-item">
+          <div class="txn-icon {{ icon_cls }}"><i class="bi {{ icon }}"></i></div>
+          <div class="txn-meta">
+            <div class="txn-party">{{ txn.counterparty or txn.description or txn.type }}</div>
+            <div class="txn-date">{{ txn.timestamp.strftime('%d %b %Y, %H:%M') if txn.timestamp else '—' }}</div>
+          </div>
+          <div>
+            <div class="txn-amt {{ cls }}">
+              {{ '-' if txn.is_debit else '+' }} TZS {{ "{:,.2f}".format(txn.amount) }}
+            </div>
+            <div style="text-align:right;margin-top:.2rem">
+              <span class="txn-badge {% if txn.status == 'COMPLETED' %}badge-ok{% elif txn.status == 'PENDING' %}badge-pnd{% else %}badge-fail{% endif %}">
+                {{ txn.status }}
+              </span>
+            </div>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-icon"><i class="bi bi-inbox"></i></div>
+      <div style="font-size:.9rem">No transactions yet</div>
+      <div style="font-size:.8rem;margin-top:.5rem">
+        <a href="{{ url_for('transfers.send') }}">Send your first payment →</a>
+      </div>
+    </div>
+  {% endif %}
+</div>
+
+<!-- Encryption info box -->
+<div style="margin-top:1.25rem;padding:1rem 1.25rem;background:var(--accent-subtle);border:1px solid var(--border-accent);border-radius:var(--radius-sm);display:flex;align-items:center;gap:.75rem" class="fade-up">
+  <i class="bi bi-shield-lock-fill" style="color:var(--accent);font-size:1.1rem;flex-shrink:0"></i>
+  <div style="font-size:.78rem;color:var(--text-muted);line-height:1.5">
+    Your balance is stored as <strong style="color:var(--text-secondary)">AES-256-GCM ciphertext</strong> in the database.
+    Decryption occurs only in the application layer — the database never sees plaintext values.
+    Compliant with <strong style="color:var(--text-secondary)">NIST SP 800-38D</strong> and <strong style="color:var(--text-secondary)">FIPS PUB 197</strong>.
+  </div>
+</div>
+{% endblock %}

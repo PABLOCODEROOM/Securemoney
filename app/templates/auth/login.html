@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+  <!-- Visual Panel -->
+  <div class="auth-visual">
+    <div class="brand-name">Secure<span>Money</span></div>
+    <p class="tagline">Bank-grade AES-256-GCM encryption protects every transaction. Your finances, secured by cryptographic proof.</p>
+
+    <div style="margin-top:2.5rem">
+      <div class="auth-feature">
+        <div class="feat-icon"><i class="bi bi-shield-lock-fill"></i></div>
+        AES-256-GCM authenticated encryption
+      </div>
+      <div class="auth-feature">
+        <div class="feat-icon"><i class="bi bi-key-fill"></i></div>
+        PBKDF2-HMAC-SHA256 password hashing
+      </div>
+      <div class="auth-feature">
+        <div class="feat-icon"><i class="bi bi-phone-fill"></i></div>
+        Two-factor authentication (OTP)
+      </div>
+      <div class="auth-feature">
+        <div class="feat-icon"><i class="bi bi-eye-slash-fill"></i></div>
+        Zero plaintext stored in database
+      </div>
+    </div>
+  </div>
+
+  <!-- Login Panel -->
+  <div class="auth-panel">
+    <div class="auth-title">Welcome back</div>
+    <div class="auth-sub">Sign in to your SecureMoney account</div>
+
+    <form method="POST" action="{{ url_for('auth.login') }}" autocomplete="off">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div class="sm-form-group">
+        <label class="sm-label" for="email">Email Address</label>
+        <div class="input-wrap">
+          <span class="input-icon"><i class="bi bi-envelope-fill"></i></span>
+          <input type="email" id="email" name="email"
+                 class="sm-input" placeholder="you@example.com"
+                 value="{{ request.form.get('email', '') }}"
+                 required autocomplete="email">
+        </div>
+      </div>
+
+      <div class="sm-form-group">
+        <label class="sm-label" for="password">Password</label>
+        <div class="input-wrap">
+          <span class="input-icon"><i class="bi bi-lock-fill"></i></span>
+          <input type="password" id="password" name="password"
+                 class="sm-input" placeholder="••••••••"
+                 required autocomplete="current-password">
+        </div>
+      </div>
+
+      <button type="submit" class="btn-accent w-100" style="justify-content:center;margin-top:.5rem">
+        <i class="bi bi-arrow-right-circle-fill"></i> Continue to OTP Verification
+      </button>
+    </form>
+
+    <div class="divider"></div>
+
+    <div style="text-align:center;font-size:.88rem;color:var(--text-muted)">
+      Don't have an account?
+      <a href="{{ url_for('auth.register') }}" style="font-weight:600">Create one</a>
+    </div>
+
+    <!-- Security notice -->
+    <div style="margin-top:2rem;padding:1rem;background:var(--accent-subtle);border:1px solid var(--border-accent);border-radius:var(--radius-sm);">
+      <div style="font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:.35rem;">
+        <i class="bi bi-shield-check"></i> NIST SP 800-38D Compliant
+      </div>
+      <div style="font-size:.75rem;color:var(--text-muted);line-height:1.5">
+        All session data and financial records are encrypted with AES-256-GCM.
+        Your password is never stored — only a PBKDF2 hash with 600,000 iterations.
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

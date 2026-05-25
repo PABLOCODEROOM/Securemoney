@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  # MySQL database
+  db:
+    image: mysql:8.0
+    container_name: securemoney_db
+    environment:
+      MYSQL_ROOT_PASSWORD: securemoney_dev
+      MYSQL_DATABASE: securemoney
+      MYSQL_CHARSET: utf8mb4
+      MYSQL_COLLATION: utf8mb4_unicode_ci
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./scripts/setup_db.sql:/docker-entrypoint-initdb.d/01-schema.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # SecureMoney application
+  web:
+    build: .
+    container_name: securemoney_web
+    ports:
+      - "5000:8000"
+    environment:
+      FLASK_ENV: development
+      FLASK_DEBUG: 1
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: securemoney
+      DB_USER: root
+      DB_PASSWORD: securemoney_dev
+      SECRET_KEY: dev-secret-key-change-in-production
+      MASTER_KEY_HEX: abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789
+      EMAIL_SIMULATE: "true"
+      PBKDF2_ITERATIONS: "600000"
+      OTP_EXPIRY_SECONDS: "300"
+      SESSION_TIMEOUT_MINUTES: "15"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - .:/app
+    command: >
+      sh -c "sleep 5 && 
+             python scripts/seed_demo.py &&
+             gunicorn --reload --workers=1 --bind=0.0.0.0:8000 wsgi:app"
+
+volumes:
+  mysql_data:
+
+networks:
+  default:
+    name: securemoney_network

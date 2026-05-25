@@ -1,0 +1,96 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+.vent/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Flask
+instance/
+.webassets-cache
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment
+.env
+.env.local
+.env.production
+.env.*.local
+
+# Secrets (CRITICAL)
+!.env.example
+secrets.yml
+config/secrets.yml
+
+# Logs
+*.log
+logs/
+
+# Database
+*.sql
+!scripts/*.sql
+securemoney_test/
+securemoney_prod/
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temp
+*.tmp
+*.bak
+*.swp
+*~
+
+# SSL certificates (local dev only)
+*.pem
+*.key
+*.crt
+
+# Node (if using frontend build tools in future)
+node_modules/
+npm-debug.log
+
+# Backup files
+*.backup
+*.bkp
+
+# Virtual machines / Vagrant
+.vagrant/
+Vagrantfile.local

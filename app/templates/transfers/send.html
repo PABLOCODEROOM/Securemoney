@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}Send Money{% endblock %}
+
+{% block content %}
+<div class="page-header fade-up">
+  <div>
+    <div class="page-title">Send Money</div>
+    <div class="page-sub">Transfer funds to another SecureMoney account</div>
+  </div>
+  <div class="lock-badge"><i class="bi bi-shield-lock-fill"></i> Encrypted Transfer</div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 340px;gap:1.5rem;align-items:start">
+  <!-- Transfer form -->
+  <div class="sm-card fade-up d1">
+    <div class="sm-card-header">
+      <span class="sm-card-title"><i class="bi bi-send-fill me-1"></i> Transfer Details</span>
+    </div>
+
+    <form method="POST" action="{{ url_for('transfers.send') }}" id="transfer-form" autocomplete="off">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div class="sm-form-group">
+        <label class="sm-label" for="to_account">Recipient Account Number</label>
+        <div class="input-wrap">
+          <span class="input-icon"><i class="bi bi-person-fill"></i></span>
+          <input type="text" id="to_account" name="to_account"
+                 class="sm-input" placeholder="SM12345678"
+                 pattern="SM[0-9]{8}" title="Account format: SM followed by 8 digits"
+                 value="{{ request.form.get('to_account', '') }}"
+                 style="text-transform:uppercase" required>
+        </div>
+        <div style="font-size:.73rem;color:var(--text-muted);margin-top:.3rem">
+          <i class="bi bi-info-circle"></i> Format: SM########
+        </div>
+      </div>
+
+      <div class="sm-form-group">
+        <label class="sm-label" for="amount">Amount (TZS)</label>
+        <div class="input-wrap">
+          <span class="input-icon"><i class="bi bi-currency-exchange"></i></span>
+          <input type="number" id="amount" name="amount"
+                 class="sm-input format-amount"
+                 placeholder="0.00" min="1" max="10000000"
+                 step="0.01"
+                 value="{{ request.form.get('amount', '') }}" required>
+        </div>
+      </div>
+
+      <div class="sm-form-group">
+        <label class="sm-label" for="description">Description <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
+        <div class="input-wrap">
+          <span class="input-icon"><i class="bi bi-chat-text"></i></span>
+          <input type="text" id="description" name="description"
+                 class="sm-input" placeholder="e.g. Rent, School fees…"
+                 maxlength="200"
+                 value="{{ request.form.get('description', '') }}">
+        </div>
+      </div>
+
+      <div style="display:flex;gap:.75rem;margin-top:1.5rem">
+        <button type="submit" class="btn-accent" style="flex:1;justify-content:center">
+          <i class="bi bi-send-fill"></i> Send Money
+        </button>
+        <a href="{{ url_for('main.dashboard') }}" class="btn-ghost">Cancel</a>
+      </div>
+    </form>
+  </div>
+
+  <!-- Info sidebar -->
+  <div>
+    <!-- Balance card -->
+    <div class="sm-card fade-up d2" style="margin-bottom:1rem">
+      <div class="sm-card-title" style="margin-bottom:.75rem"><i class="bi bi-wallet2 me-1"></i> Your Balance</div>
+      <div style="font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;color:var(--accent)">
+        TZS {{ "{:,.2f}".format(account.balance) if account else "0.00" }}
+      </div>
+      <div style="font-size:.75rem;color:var(--text-muted);margin-top:.25rem">
+        {{ account.account_number if account else "" }}
+      </div>
+    </div>
+
+    <!-- Security info -->
+    <div class="sm-card fade-up d3">
+      <div class="sm-card-title" style="margin-bottom:1rem"><i class="bi bi-shield-lock-fill me-1"></i> Transfer Security</div>
+      <div style="font-size:.8rem;color:var(--text-muted);line-height:1.65">
+        <div style="margin-bottom:.75rem">
+          <div style="color:var(--accent);font-weight:600;font-size:.78rem;margin-bottom:.2rem">
+            <i class="bi bi-lock-fill"></i> AES-256-GCM Encrypted
+          </div>
+          The transfer amount is encrypted with a unique key derived from PBKDF2 before being stored in the database.
+        </div>
+        <div style="margin-bottom:.75rem">
+          <div style="color:var(--accent);font-weight:600;font-size:.78rem;margin-bottom:.2rem">
+            <i class="bi bi-arrow-left-right"></i> Atomic Transaction
+          </div>
+          Debit and credit happen in a single database transaction — partial failures are rolled back.
+        </div>
+        <div>
+          <div style="color:var(--accent);font-weight:600;font-size:.78rem;margin-bottom:.2rem">
+            <i class="bi bi-journal-text"></i> Audit Logged
+          </div>
+          All transfers are recorded in the tamper-proof audit log.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

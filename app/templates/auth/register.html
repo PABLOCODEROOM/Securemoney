@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Create Account{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+  <div class="auth-visual">
+    <div class="brand-name">Secure<span>Money</span></div>
+    <p class="tagline">Join thousands of users who trust SecureMoney for secure digital payments in Tanzania.</p>
+    <div style="margin-top:2.5rem">
+      <div class="auth-feature">
+        <div class="feat-icon"><i class="bi bi-person-check-fill"></i></div>
+        Instant account creation
+      </div>
+      <div class="auth-feature">
+        <div class="feat-icon"><i class="bi bi-bank2"></i></div>
+        Unique encrypted account number
+      </div>
+      <div class="auth-feature">
+        <div class="feat-icon"><i class="bi bi-arrow-left-right"></i></div>
+        Send & receive money instantly
+      </div>
+      <div class="auth-feature">
+        <div class="feat-icon"><i class="bi bi-receipt-cutoff"></i></div>
+        Pay bills: TANESCO, DAWASCO & more
+      </div>
+    </div>
+  </div>
+
+  <div class="auth-panel">
+    <div class="auth-title">Create Account</div>
+    <div class="auth-sub">Fill in your details to get started</div>
+
+    <form method="POST" action="{{ url_for('auth.register') }}" autocomplete="off">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div class="sm-form-group">
+        <label class="sm-label" for="full_name">Full Name</label>
+        <div class="input-wrap">
+          <span class="input-icon"><i class="bi bi-person-fill"></i></span>
+          <input type="text" id="full_name" name="full_name"
+                 class="sm-input" placeholder="John Doe"
+                 value="{{ full_name or '' }}" required>
+        </div>
+      </div>
+
+      <div class="sm-form-group">
+        <label class="sm-label" for="email">Email Address</label>
+        <div class="input-wrap">
+          <span class="input-icon"><i class="bi bi-envelope-fill"></i></span>
+          <input type="email" id="email" name="email"
+                 class="sm-input" placeholder="john@example.com"
+                 value="{{ email or '' }}" required autocomplete="off">
+        </div>
+      </div>
+
+      <div class="sm-form-group">
+        <label class="sm-label" for="phone">Phone Number</label>
+        <div class="input-wrap">
+          <span class="input-icon"><i class="bi bi-telephone-fill"></i></span>
+          <input type="tel" id="phone" name="phone"
+                 class="sm-input" placeholder="+255 7XX XXX XXX"
+                 value="{{ phone or '' }}" required>
+        </div>
+      </div>
+
+      <div class="sm-form-group">
+        <label class="sm-label" for="password">Password</label>
+        <div class="input-wrap">
+          <span class="input-icon"><i class="bi bi-lock-fill"></i></span>
+          <input type="password" id="password" name="password"
+                 class="sm-input" placeholder="Min. 8 characters"
+                 required minlength="8" autocomplete="new-password">
+        </div>
+      </div>
+
+      <div class="sm-form-group">
+        <label class="sm-label" for="confirm_password">Confirm Password</label>
+        <div class="input-wrap">
+          <span class="input-icon"><i class="bi bi-lock-fill"></i></span>
+          <input type="password" id="confirm_password" name="confirm_password"
+                 class="sm-input" placeholder="Repeat your password"
+                 required autocomplete="new-password">
+        </div>
+      </div>
+
+      <button type="submit" class="btn-accent w-100" style="justify-content:center">
+        <i class="bi bi-person-plus-fill"></i> Create Secure Account
+      </button>
+    </form>
+
+    <div class="divider"></div>
+    <div style="text-align:center;font-size:.88rem;color:var(--text-muted)">
+      Already have an account? <a href="{{ url_for('auth.login') }}" style="font-weight:600">Sign in</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

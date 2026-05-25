@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Admin Login{% endblock %}
+
+{% block content %}
+<main class="auth-page">
+  <div class="auth-visual">
+    <div class="brand-name">Admin<span>Console</span></div>
+    <p class="tagline">Operational oversight for SecureMoney audit activity and platform health.</p>
+
+    <div style="margin-top:2.5rem">
+      <div class="auth-feature">
+        <div class="feat-icon"><i class="bi bi-person-lock"></i></div>
+        Separate admin credential store
+      </div>
+      <div class="auth-feature">
+        <div class="feat-icon"><i class="bi bi-activity"></i></div>
+        Audit-log visibility
+      </div>
+      <div class="auth-feature">
+        <div class="feat-icon"><i class="bi bi-database-lock"></i></div>
+        No balance decryption access
+      </div>
+    </div>
+  </div>
+
+  <div class="auth-panel">
+    <div class="auth-title">Admin sign in</div>
+    <div class="auth-sub">Use the seeded admin credentials to continue</div>
+
+    <form method="POST" action="{{ url_for('admin.login') }}" autocomplete="off">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div class="sm-form-group">
+        <label class="sm-label" for="username">Username</label>
+        <div class="input-wrap">
+          <span class="input-icon"><i class="bi bi-person-fill-lock"></i></span>
+          <input type="text" id="username" name="username" class="sm-input" required autofocus>
+        </div>
+      </div>
+
+      <div class="sm-form-group">
+        <label class="sm-label" for="password">Password</label>
+        <div class="input-wrap">
+          <span class="input-icon"><i class="bi bi-lock-fill"></i></span>
+          <input type="password" id="password" name="password" class="sm-input" required>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-accent w-100" style="justify-content:center;margin-top:.5rem">
+        <i class="bi bi-shield-lock-fill"></i> Enter admin console
+      </button>
+    </form>
+  </div>
+</main>
+{% endblock %}

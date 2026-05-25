@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% block title %}Pay Bills{% endblock %}
+
+{% block content %}
+<div class="page-header fade-up">
+  <div>
+    <div class="page-title">Pay Bills</div>
+    <div class="page-sub">Pay TANESCO, DAWASCO, NHIF, and more</div>
+  </div>
+  <div class="lock-badge"><i class="bi bi-receipt"></i> Secure Payment</div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 320px;gap:1.5rem;align-items:start">
+
+  <div class="sm-card fade-up d1">
+    <div class="sm-card-header">
+      <span class="sm-card-title"><i class="bi bi-receipt-cutoff me-1"></i> Bill Details</span>
+    </div>
+
+    <form method="POST" action="{{ url_for('payments.pay') }}" id="bill-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div class="sm-form-group">
+        <label class="sm-label">Select Biller</label>
+        <!-- Biller grid cards -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.65rem;margin-bottom:.5rem">
+          {% for biller in billers %}
+            <label style="cursor:pointer">
+              <input type="radio" name="biller" value="{{ biller.id }}"
+                     style="display:none"
+                     {% if request.form.get('biller') == biller.id %}checked{% endif %}>
+              <div class="biller-card" data-id="{{ biller.id }}">
+                <div class="biller-icon">
+                  {% if 'TANESCO' in biller.id or 'LUKU' in biller.id %}<i class="bi bi-lightning-charge-fill"></i>
+                  {% elif 'DAWASCO' in biller.id %}<i class="bi bi-droplet-fill"></i>
+                  {% elif 'TTCL' in biller.id %}<i class="bi bi-telephone-fill"></i>
+                  {% elif 'NHIF' in biller.id %}<i class="bi bi-heart-pulse-fill"></i>
+                  {% else %}<i class="bi bi-mortarboard-fill"></i>{% endif %}
+                </div>
+                <div class="biller-name">{{ biller.name.split('(')[0].strip() }}</div>
+                {% if '(' in biller.name %}
+                  <div class="biller-sub">{{ biller.name.split('(')[1].rstrip(')') }}</div>
+                {% endif %}
+              </div>
+            </label>
+          {% endfor %}
+        </div>
+        <select name="biller" id="biller" class="sm-input sm-select" required style="display:none">
+          <option value="">— Select biller —</option>
+          {% for biller in billers %}
+            <option value="{{ biller.id }}" {% if request.form.get('biller') == biller.id %}selected{% endif %}>
+              {{ biller.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="sm-form-group">
+        <label class="sm-label" for="reference">Reference / Account Number</label>
+        <div class="input-wrap">
+          <span class="input-icon"><i class="bi bi-hash"></i></span>
+          <input type="text" id="reference" name="reference"
+                 class="sm-input" placeholder="e.g. 12345678 or meter number"
+                 value="{{ request.form.get('reference', '') }}" required>
+        </div>
+      </div>
+
+      <div class="sm-form-group">
+        <label class="sm-label" for="amount">Amount (TZS)</label>
+        <div class="input-wrap">
+          <span class="input-icon"><i class="bi bi-currency-exchange"></i></span>
+          <input type="number" id="amount" name="amount"
+                 class="sm-input format-amount"
+                 placeholder="0.00" min="1" step="0.01"
+                 value="{{ request.form.get('amount', '') }}" required>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:.75rem;margin-top:1.5rem">
+        <button type="submit" class="btn-accent" style="flex:1;justify-content:center">
+          <i class="bi bi-check2-circle"></i> Confirm Payment
+        </button>
+        <a href="{{ url_for('main.dashboard') }}" class="btn-ghost">Cancel</a>
+      </div>
+    </form>
+  </div>
+
+  <div>
+    <!-- Balance -->
+    <div class="sm-card fade-up d2" style="margin-bottom:1rem">
+      <div class="sm-card-title" style="margin-bottom:.75rem">Available Balance</div>
+      <div style="font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;color:var(--accent)">
+        TZS {{ "{:,.2f}".format(account.balance) if account else "0.00" }}
+      </div>
+    </div>
+
+    <!-- Payment info -->
+    <div class="sm-card fade-up d3">
+      <div class="sm-card-title" style="margin-bottom:1rem"><i class="bi bi-info-circle me-1"></i> About Bill Payments</div>
+      <div style="font-size:.8rem;color:var(--text-muted);line-height:1.65">
+        <div class="auth-feature" style="margin-bottom:.6rem">
+          <div class="feat-icon"><i class="bi bi-shield-fill-check"></i></div>
+          Payment amount encrypted with AES-256-GCM before storage
+        </div>
+        <div class="auth-feature" style="margin-bottom:.6rem">
+          <div class="feat-icon"><i class="bi bi-journal-text"></i></div>
+          Full audit trail in tamper-proof log
+        </div>
+        <div class="auth-feature">
+          <div class="feat-icon"><i class="bi bi-bell-fill"></i></div>
+          Email notification sent on successful payment
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+.biller-card {
+  background: var(--bg-input);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: .9rem .6rem;
+  text-align: center;
+  transition: all var(--transition);
+}
+.biller-card:hover { border-color: rgba(255,255,255,.2); }
+input[type="radio"]:checked + .biller-card {
+  border-color: var(--accent);
+  background: var(--accent-subtle);
+}
+.biller-icon { font-size: 1.4rem; color: var(--accent); margin-bottom: .4rem; }
+.biller-name { font-weight: 700; font-size: .8rem; color: var(--text-primary); }
+.biller-sub  { font-size: .7rem; color: var(--text-muted); margin-top: .15rem; }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+/* Sync visual biller cards with hidden select */
+document.querySelectorAll('input[name="biller"]').forEach(radio => {
+  radio.addEventListener('change', () => {
+    document.getElementById('biller').value = radio.value;
+  });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}{{ code }} Error{% endblock %}
+
+{% block content %}
+<div style="min-height:60vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:3rem 1rem">
+  <div style="font-family:'Syne',sans-serif;font-size:6rem;font-weight:800;color:var(--border);line-height:1;margin-bottom:1rem">
+    {{ code }}
+  </div>
+  <div style="font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:700;margin-bottom:.75rem">
+    {{ msg }}
+  </div>
+  <div style="color:var(--text-muted);font-size:.9rem;margin-bottom:2rem;max-width:400px">
+    {% if code == 403 %}
+      You don't have permission to access this page.
+    {% elif code == 404 %}
+      The page you're looking for doesn't exist or has been moved.
+    {% elif code == 429 %}
+      Too many requests. Please wait a moment before trying again.
+    {% else %}
+      Something went wrong on our end. Please try again later.
+    {% endif %}
+  </div>
+  <a href="{{ url_for('main.index') }}" class="btn-accent">
+    <i class="bi bi-house-fill"></i> Back to Home
+  </a>
+</div>
+{% endblock %}

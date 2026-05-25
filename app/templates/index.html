@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}SecureMoney Platform{% endblock %}
+
+{% block content %}
+<main class="landing-shell">
+  <section class="hero-section">
+    <div class="container hero-grid">
+      <div class="hero-copy fade-up">
+        <div class="eyebrow"><i class="bi bi-stars"></i> Premium encrypted payments platform</div>
+        <h1>SecureMoney</h1>
+        <p class="hero-lede">
+          A modern fintech workspace for encrypted wallets, protected transfers,
+          payment operations, and audit-ready financial activity.
+        </p>
+        <div class="hero-actions">
+          <a href="{{ url_for('auth.register') }}" class="btn-accent btn-lg">
+            <i class="bi bi-arrow-right-circle-fill"></i> Open secure account
+          </a>
+          <a href="{{ url_for('auth.login') }}" class="btn-ghost btn-lg">
+            <i class="bi bi-box-arrow-in-right"></i> Sign in
+          </a>
+        </div>
+        <div class="trust-row">
+          <span><i class="bi bi-shield-check"></i> AES-256-GCM</span>
+          <span><i class="bi bi-key"></i> PBKDF2 hashing</span>
+          <span><i class="bi bi-database-lock"></i> MySQL protected records</span>
+        </div>
+      </div>
+
+      <div class="hero-product fade-up d2" aria-label="SecureMoney dashboard preview">
+        <div class="product-window">
+          <div class="window-bar">
+            <span></span><span></span><span></span>
+          </div>
+          <div class="product-card balance-preview">
+            <div>
+              <div class="metric-label">Available balance</div>
+              <div class="metric-value">TZS 12,840,500</div>
+            </div>
+            <div class="mini-chip"><i class="bi bi-lock-fill"></i> encrypted</div>
+          </div>
+          <div class="preview-grid">
+            <div class="product-card">
+              <div class="metric-label">Transfers</div>
+              <div class="metric-value small">248</div>
+              <div class="sparkline"><span style="height:44%"></span><span style="height:70%"></span><span style="height:52%"></span><span style="height:88%"></span><span style="height:63%"></span></div>
+            </div>
+            <div class="product-card">
+              <div class="metric-label">Risk score</div>
+              <div class="metric-value small">Low</div>
+              <div class="risk-ring">98%</div>
+            </div>
+          </div>
+          <div class="product-card activity-preview">
+            <div class="activity-row"><span><i class="bi bi-send-fill"></i> Transfer to Jane</span><strong>-45,000</strong></div>
+            <div class="activity-row"><span><i class="bi bi-receipt"></i> Utility payment</span><strong>-18,400</strong></div>
+            <div class="activity-row"><span><i class="bi bi-arrow-down-circle-fill"></i> Deposit</span><strong>+220,000</strong></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-band" id="platform">
+    <div class="container">
+      <div class="section-heading">
+        <div class="eyebrow">Platform</div>
+        <h2>Everything a fintech wallet needs</h2>
+      </div>
+      <div class="feature-grid">
+        <div class="feature-card"><i class="bi bi-wallet2"></i><h3>Wallet Management</h3><p>Track balances, encrypted account numbers, and payment activity in a focused dashboard.</p></div>
+        <div class="feature-card"><i class="bi bi-arrow-left-right"></i><h3>Money Transfers</h3><p>Send funds with validation, atomic updates, and transaction history built into the flow.</p></div>
+        <div class="feature-card"><i class="bi bi-receipt-cutoff"></i><h3>Bill Payments</h3><p>Pay common billers with clear references, audit logging, and status tracking.</p></div>
+        <div class="feature-card"><i class="bi bi-bar-chart-line"></i><h3>Analytics</h3><p>Premium cards and visual metrics make account activity easy to scan at a glance.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="security-section" id="security">
+    <div class="container security-grid">
+      <div>
+        <div class="eyebrow">Security architecture</div>
+        <h2>Designed around encrypted financial records</h2>
+        <p>
+          SecureMoney keeps the backend stack unchanged while presenting a
+          polished SaaS interface around authentication, OTP verification,
+          and encrypted balances.
+        </p>
+      </div>
+      <div class="security-list">
+        <div><i class="bi bi-check2-circle"></i> CSRF-protected forms</div>
+        <div><i class="bi bi-check2-circle"></i> Prepared MySQL queries</div>
+        <div><i class="bi bi-check2-circle"></i> Password hashing and sessions</div>
+        <div><i class="bi bi-check2-circle"></i> Encrypted data at rest</div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="landing-footer">
+    <div class="container footer-inner">
+      <strong>SecureMoney</strong>
+      <span>Enterprise fintech interface for secure payment operations.</span>
+      <a href="{{ url_for('auth.login') }}">Access platform</a>
+    </div>
+  </footer>
+</main>
+{% endblock %}

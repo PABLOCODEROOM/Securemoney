@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Transaction History{% endblock %}
+
+{% block content %}
+<div class="page-header fade-up">
+  <div>
+    <div class="page-title">Transaction History</div>
+    <div class="page-sub">Last 50 transactions — all amounts AES-256-GCM decrypted on-the-fly</div>
+  </div>
+  <div class="lock-badge"><i class="bi bi-clock-history"></i> {{ txns | length }} records</div>
+</div>
+
+<div class="sm-card fade-up d1">
+  {% if txns %}
+    <ul class="txn-list">
+      {% for txn in txns %}
+        {% set cls      = 'debit' if txn.is_debit else 'credit' %}
+        {% set icon_cls = 'debit' if txn.is_debit else ('bill' if txn.type == 'BILL_PAYMENT' else 'credit') %}
+        {% set icon     = 'bi-send-fill' if txn.is_debit else ('bi-receipt' if txn.type == 'BILL_PAYMENT' else 'bi-arrow-down-circle-fill') %}
+        <li class="txn-item">
+          <div class="txn-icon {{ icon_cls }}"><i class="bi {{ icon }}"></i></div>
+          <div class="txn-meta">
+            <div class="txn-party">{{ txn.counterparty or txn.description or txn.type }}</div>
+            <div class="txn-date">{{ txn.timestamp.strftime('%d %b %Y, %H:%M UTC') if txn.timestamp else '—' }}</div>
+            {% if txn.description %}
+              <div style="font-size:.75rem;color:var(--text-muted);margin-top:.1rem">{{ txn.description }}</div>
+            {% endif %}
+          </div>
+          <div style="text-align:right">
+            <div class="txn-amt {{ cls }}">
+              {{ '−' if txn.is_debit else '+' }} TZS {{ "{:,.2f}".format(txn.amount) }}
+            </div>
+            <div style="margin-top:.3rem;display:flex;gap:.4rem;justify-content:flex-end;align-items:center">
+              <span class="txn-badge {% if txn.status == 'COMPLETED' %}badge-ok{% elif txn.status == 'PENDING' %}badge-pnd{% else %}badge-fail{% endif %}">
+                {{ txn.status }}
+              </span>
+              <span style="font-size:.65rem;color:var(--text-muted);font-family:monospace">
+                #{{ txn.txn_id }}
+              </span>
+            </div>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-icon"><i class="bi bi-inbox-fill"></i></div>
+      <div>No transactions found</div>
+      <div style="font-size:.82rem;margin-top:.5rem">
+        <a href="{{ url_for('transfers.send') }}">Make your first transfer →</a>
+      </div>
+    </div>
+  {% endif %}
+</div>
+
+<!-- Balance summary -->
+{% if txns %}
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-top:1.25rem" class="fade-up d2">
+  {% set total_sent     = txns | selectattr('is_debit') | sum(attribute='amount') %}
+  {% set total_received = txns | rejectattr('is_debit') | sum(attribute='amount') %}
+  <div class="stat-tile">
+    <div class="stat-label">Total Sent</div>
+    <div class="stat-value" style="font-size:1.2rem;color:var(--danger)">TZS {{ "{:,.2f}".format(total_sent) }}</div>
+  </div>
+  <div class="stat-tile">
+    <div class="stat-label">Total Received</div>
+    <div class="stat-value" style="font-size:1.2rem;color:var(--accent)">TZS {{ "{:,.2f}".format(total_received) }}</div>
+  </div>
+  <div class="stat-tile">
+    <div class="stat-label">Current Balance</div>
+    <div class="stat-value" style="font-size:1.2rem">TZS {{ "{:,.2f}".format(account.balance) if account else "—" }}</div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
