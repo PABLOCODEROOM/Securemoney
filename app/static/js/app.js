@@ -136,7 +136,14 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('click', (e) => {
     const btn = e.target.closest('[data-lang-option]');
     if (!btn) return;
+
+    // Prevent toggle/outside-click handlers from interfering
+    e.stopPropagation();
+
     const lang = btn.getAttribute('data-lang-option');
+    // Close all menus
+    document.querySelectorAll('.language-switcher').forEach(s => s.classList.remove('active'));
+
     setLanguage(lang);
   });
 
