@@ -79,6 +79,17 @@ config_map = {
     "default": DevelopmentConfig,
 }
 
+class BaseConfig(Config):
+    """Backward-compatible config attributes expected by older code."""
+    FLASK_ENV: str = os.getenv("FLASK_ENV", "development")
+
+
 def get_config() -> Config:
     env = os.getenv("FLASK_ENV", "development")
-    return config_map.get(env, DevelopmentConfig)()
+    cfg_cls = config_map.get(env, DevelopmentConfig)
+    cfg = cfg_cls()
+    # Ensure FLASK_ENV exists for code paths that still read cfg.FLASK_ENV
+    if not hasattr(cfg, "FLASK_ENV"):
+        cfg.FLASK_ENV = env
+    return cfg
+
